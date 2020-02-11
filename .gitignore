@@ -1,0 +1,7 @@
+*.orc
+*.crc
+.idea
+*.iml
+target
+aws.properties
+
