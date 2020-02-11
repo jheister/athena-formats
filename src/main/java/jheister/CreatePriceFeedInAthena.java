@@ -33,6 +33,7 @@ public class CreatePriceFeedInAthena {
     public static final Properties PROPERTIES = loadProps();
     public static final String CRAWLER_NAME = "test crawler";
     public static final String FILE_NAME = "test_eod.orc";
+    public static final String FEED_NAME = "eod_prices";
     public static final String DB_NAME = "test2";
     public static final String BUCKET_NAME = PROPERTIES.getProperty("bucket.name");
     public static final String CRAWLER_ROLE = PROPERTIES.getProperty("crawler.role");
@@ -44,7 +45,6 @@ public class CreatePriceFeedInAthena {
     * todo: example queries:
     *    SELECT * FROM "test2"."input_data" where price_date > cast('2019-03-04' as DATE) and price_date < cast('2019-04-04' as DATE) limit 10;
     *    show scanned quantity querying by date vs. instrument
-    * todo: test JDBC connection
     * */
 
     public static void main(String[] args) throws InterruptedException {
@@ -55,7 +55,7 @@ public class CreatePriceFeedInAthena {
         generatePriceFile(FILE_NAME, LocalDate.parse("2019-01-01"), LocalDate.parse("2019-06-01"), 100000);
 
         System.out.println("Uploading file");
-        s3.putObject(BUCKET_NAME, "input_data/" + FILE_NAME, new File(FILE_NAME));
+        s3.putObject(BUCKET_NAME, FEED_NAME + "/" + FILE_NAME, new File(FILE_NAME));
 
         System.out.println("Creating athena database");
         glue.createDatabase(new CreateDatabaseRequest().withDatabaseInput(new DatabaseInput().withName(DB_NAME).withDescription("Example created from java")));
@@ -69,7 +69,7 @@ public class CreatePriceFeedInAthena {
                         .withDeleteBehavior(DeleteBehavior.DELETE_FROM_DATABASE)
                         .withUpdateBehavior(UpdateBehavior.UPDATE_IN_DATABASE))
                 .withTargets(new CrawlerTargets()
-                        .withS3Targets(new S3Target().withPath("s3://" + BUCKET_NAME + "/input_data"))));
+                        .withS3Targets(new S3Target().withPath("s3://" + BUCKET_NAME + "/" + FEED_NAME))));
 
         System.out.println("Running crawler");
         glue.startCrawler(new StartCrawlerRequest().withName(CRAWLER_NAME));
