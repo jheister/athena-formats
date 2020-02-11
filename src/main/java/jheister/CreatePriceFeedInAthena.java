@@ -45,6 +45,21 @@ public class CreatePriceFeedInAthena {
     * todo: example queries:
     *    SELECT * FROM "test2"."input_data" where price_date > cast('2019-03-04' as DATE) and price_date < cast('2019-04-04' as DATE) limit 10;
     *    show scanned quantity querying by date vs. instrument
+    * todo: how does it work with map in orc file
+    * todo: test when different files have different schemas
+    *
+    *
+    *
+    *
+    * Create user with credentials in .aws/credentials
+    *    - S3 full
+    *    - Athena full
+    *    - AWSGlueServiceRole
+    *    - AWSGlueConsoleFullAccess
+    * Create bucket for athena
+    * Create role for crawler
+    *     AWSGlueServiceRole
+    *     S3 read-only
     * */
 
     public static void main(String[] args) throws InterruptedException {
