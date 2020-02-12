@@ -32,7 +32,6 @@ import static java.util.stream.Collectors.toList;
 public class CreatePriceFeedInAthena {
     public static final Properties PROPERTIES = loadProps();
     public static final String CRAWLER_NAME = "test crawler";
-    public static final String FILE_NAME = "test_eod.orc";
     public static final String FEED_NAME = "eod_prices";
     public static final String DB_NAME = "test2";
     public static final String BUCKET_NAME = PROPERTIES.getProperty("bucket.name");
@@ -67,10 +66,18 @@ public class CreatePriceFeedInAthena {
         AWSGlue glue = AWSGlueClient.builder().withRegion(Regions.EU_WEST_1).build();
 
         System.out.println("Generating price file");
-        generatePriceFile(FILE_NAME, LocalDate.parse("2019-01-01"), LocalDate.parse("2019-06-01"), 100000);
+        generatePriceFile("month=2019-01", LocalDate.parse("2019-01-01"), LocalDate.parse("2019-02-01"), 100000);
+        generatePriceFile("month=2019-02", LocalDate.parse("2019-02-01"), LocalDate.parse("2019-03-01"), 100000);
+        generatePriceFile("month=2019-03", LocalDate.parse("2019-03-01"), LocalDate.parse("2019-04-01"), 100000);
+        generatePriceFile("month=2019-04", LocalDate.parse("2019-04-01"), LocalDate.parse("2019-05-01"), 100000);
+        generatePriceFile("month=2019-05", LocalDate.parse("2019-05-01"), LocalDate.parse("2019-06-01"), 100000);
 
         System.out.println("Uploading file");
-        s3.putObject(BUCKET_NAME, FEED_NAME + "/" + FILE_NAME, new File(FILE_NAME));
+        s3.putObject(BUCKET_NAME, FEED_NAME + "/month=2019-01/data.orc", new File("month=2019-01"));
+        s3.putObject(BUCKET_NAME, FEED_NAME + "/month=2019-02/data.orc", new File("month=2019-02"));
+        s3.putObject(BUCKET_NAME, FEED_NAME + "/month=2019-03/data.orc", new File("month=2019-03"));
+        s3.putObject(BUCKET_NAME, FEED_NAME + "/month=2019-04/data.orc", new File("month=2019-04"));
+        s3.putObject(BUCKET_NAME, FEED_NAME + "/month=2019-05/data.orc", new File("month=2019-05"));
 
         System.out.println("Creating athena database");
         glue.createDatabase(new CreateDatabaseRequest().withDatabaseInput(new DatabaseInput().withName(DB_NAME).withDescription("Example created from java")));
