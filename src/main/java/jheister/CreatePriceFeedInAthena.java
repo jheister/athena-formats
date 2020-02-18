@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
@@ -65,19 +66,17 @@ public class CreatePriceFeedInAthena {
         AmazonS3 s3 = AmazonS3Client.builder().withRegion(Regions.EU_WEST_1).build();
         AWSGlue glue = AWSGlueClient.builder().withRegion(Regions.EU_WEST_1).build();
 
-        System.out.println("Generating price file");
-        generatePriceFile("month=2019-01", LocalDate.parse("2019-01-01"), LocalDate.parse("2019-02-01"), 100000);
-        generatePriceFile("month=2019-02", LocalDate.parse("2019-02-01"), LocalDate.parse("2019-03-01"), 100000);
-        generatePriceFile("month=2019-03", LocalDate.parse("2019-03-01"), LocalDate.parse("2019-04-01"), 100000);
-        generatePriceFile("month=2019-04", LocalDate.parse("2019-04-01"), LocalDate.parse("2019-05-01"), 100000);
-        generatePriceFile("month=2019-05", LocalDate.parse("2019-05-01"), LocalDate.parse("2019-06-01"), 100000);
+        LocalDate date = LocalDate.parse("2019-06-01");
+        while (date.isBefore(LocalDate.parse("2019-09-01"))) {
+            LocalDate endDate = date.plusMonths(1);
+            System.out.println("Generating " + date);
 
-        System.out.println("Uploading file");
-        s3.putObject(BUCKET_NAME, FEED_NAME + "/month=2019-01/data.orc", new File("month=2019-01"));
-        s3.putObject(BUCKET_NAME, FEED_NAME + "/month=2019-02/data.orc", new File("month=2019-02"));
-        s3.putObject(BUCKET_NAME, FEED_NAME + "/month=2019-03/data.orc", new File("month=2019-03"));
-        s3.putObject(BUCKET_NAME, FEED_NAME + "/month=2019-04/data.orc", new File("month=2019-04"));
-        s3.putObject(BUCKET_NAME, FEED_NAME + "/month=2019-05/data.orc", new File("month=2019-05"));
+            generatePriceFile("data.orc", date, endDate, 100000);
+
+            String filename = "month=" + DateTimeFormatter.ofPattern("YYYY-MM").format(date);
+            s3.putObject(BUCKET_NAME, FEED_NAME + "/" + filename + "/data.orc", new File("data.orc"));
+            date = endDate;
+        }
 
         System.out.println("Creating athena database");
         glue.createDatabase(new CreateDatabaseRequest().withDatabaseInput(new DatabaseInput().withName(DB_NAME).withDescription("Example created from java")));
